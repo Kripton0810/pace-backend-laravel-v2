@@ -1,0 +1,13 @@
+### Make User manually
+POST http://127.0.0.1:8000/api/user/register-manually
+Content-Type: application/json
+
+{
+    "first_name":"hello",
+    "last_name":"hrml",
+    "email":"asasd@gmail.com",
+    "date_of_birth":"2022-09-26",
+    "phone_number":"345333212",
+    "description":"hello world kldsfjw klsfjw lasjfis lf wek klsdfjl lask",
+    "portfolio_url":"https://kripton0810.github.io/"
+}
