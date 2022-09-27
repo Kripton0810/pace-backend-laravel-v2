@@ -37,7 +37,9 @@ class UserAuthController extends Controller
             'github'=>'url',
             'insta_id'=>'url',
             'fb_id'=>'url',
-            'portfolio_url'=>'url'
+            'portfolio_url'=>'url',
+            'gender'=>'alpha|required',
+            'regional_language'=>'alpha'
 
         ]);
 
@@ -57,7 +59,18 @@ class UserAuthController extends Controller
                     'emailVerified' => false,
                     'password' => $req->password
                 ];
-                return $userProperties;
+                try {
+                    $auth->createUser($userProperties);
+                    $auth->sendEmailVerificationLink($req->email);
+                    unset($req['password']);
+                    $req['login_as']= 'web';
+
+                    $create_user = User::create($req->all());
+                    return response()->json(["message"=>"user created and verification mail is send to the user","status"=>true,"data"=>$create_user],201);
+                } catch (\Throwable $th) {
+                    //throw $th;
+                    return response()->json(["message"=>$th->getMessage(),"status"=>false],400);
+                }
             }
             else
             {
@@ -81,6 +94,8 @@ class UserAuthController extends Controller
         $customTokenString = $customToken->toString();
         return response()->json(["message"=>"Token created Successfull","token"=>$customTokenString,"status"=>true],201);
     }
+
+
     public function bearerToken()
     {
        $header = $this->header('Authorization', '');
