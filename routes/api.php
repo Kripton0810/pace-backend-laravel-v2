@@ -22,4 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['prefix'=>'user'],function(){
     Route::post('create-custom-token',[UserAuthController::class,'createCustomToken']);
     Route::post('register-manually',[UserAuthController::class,'userRegisterManually']);
+    Route::post('login-manually',[UserAuthController::class,'loginManually']);
+    Route::post('resend-verification-link',[UserAuthController::class,'resendVerificationMail']);
+
+
 });

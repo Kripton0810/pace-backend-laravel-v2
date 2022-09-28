@@ -39,7 +39,8 @@ class UserAuthController extends Controller
             'fb_id'=>'url',
             'portfolio_url'=>'url',
             'gender'=>'alpha|required',
-            'regional_language'=>'alpha'
+            'regional_language'=>'alpha',
+            'password'=>'min:8|required'
 
         ]);
 
@@ -62,6 +63,7 @@ class UserAuthController extends Controller
                 try {
                     $auth->createUser($userProperties);
                     $auth->sendEmailVerificationLink($req->email);
+                    // $link = $auth->getEmailVerificationLink($req->email);
                     unset($req['password']);
                     $req['login_as']= 'web';
 
@@ -93,6 +95,68 @@ class UserAuthController extends Controller
 
         $customTokenString = $customToken->toString();
         return response()->json(["message"=>"Token created Successfull","token"=>$customTokenString,"status"=>true],201);
+    }
+    public function loginManually(Request $req)
+    {
+        //get the email and validate it and then
+        $rules = ([
+            'email'=>'email|required',
+            'password'=>'required'
+        ]);
+        $validation = Validator::make($req->all(),$rules);
+        if($validation->fails())
+        {
+            return response()->json(["message"=>$validation->messages(),"status"=>false],400);
+        }
+        try {
+                $auth = app('firebase.auth');
+                $email = $req->email;
+                $clearTextPassword = $req->password;
+                $signInResult = $auth->signInWithEmailAndPassword($email, $clearTextPassword);
+                if($signInResult)
+                {
+                    $user = $auth->getUserByEmail($req->email);
+                    if($user->emailVerified)
+                    {
+                        $user_from_db = User::where('email',$email)->first();
+                        return $user_from_db;
+                    }
+                    else
+                    {
+                        return response()->json(["message"=>"Email Id is not verified","status"=>false],403);
+                    }
+                }
+                else
+                {
+                    return response()->json(["message"=>"Email Id or password not valid","status"=>false],403);
+                }
+        } catch (\Throwable $th) {
+            return response()->json(["message"=>"Email Id or password not valid","error_message"=>$th->getMessage(),"status"=>false],403);
+        }
+
+    }
+    public function resendVerificationMail(Request $req)
+    {
+        $rules = ([
+            'email'=>'email|required'
+        ]);
+        $validation = Validator::make($req->all(),$rules);
+        if($validation->fails())
+        {
+            return response()->json(["message"=>$validation->messages(),"status"=>false],400);
+        }
+        $auth = app('firebase.auth');
+        $test = $auth->sendEmailVerificationLink($req->email);
+        // if($test)
+        // {
+        return response()->json(["message"=>"Email Id verification link send to ".$req->email." also check spam","status"=>true],200);
+        // }
+        // else
+        // {
+        //     return response()->json(["message"=>"server busy try again later","status"=>false],503);
+        // }
+
+
     }
 
 
