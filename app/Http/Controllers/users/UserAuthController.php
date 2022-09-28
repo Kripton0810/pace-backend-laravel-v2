@@ -118,8 +118,24 @@ class UserAuthController extends Controller
                     $user = $auth->getUserByEmail($req->email);
                     if($user->emailVerified)
                     {
+                        $customToken = $auth->createCustomToken($user->uid);
+                        $customTokenString = $customToken->toString();
                         $user_from_db = User::where('email',$email)->first();
-                        return $user_from_db;
+                        unset($user_from_db['id']);
+                        unset($user_from_db['login_as']);
+                        unset($user_from_db['phone_number']);
+                        unset($user_from_db['alternate_phone_number']);
+                        unset($user_from_db['description']);
+                        unset($user_from_db['github']);
+
+                        unset($user_from_db['insta_id']);
+                        unset($user_from_db['fb_id']);
+                        unset($user_from_db['portfolio_url']);
+                        unset($user_from_db['created_at']);
+                        unset($user_from_db['updated_at']);
+                        unset($user_from_db['linkedin']);
+
+                        return response()->json(["message"=>"User found successfully!!!","data"=>$user_from_db,"custom_token"=>$customTokenString,"status"=>true],200);
                     }
                     else
                     {
@@ -158,6 +174,7 @@ class UserAuthController extends Controller
 
 
     }
+    
 
 
     public function bearerToken()
