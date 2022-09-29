@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
-
+use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
 use Illuminate\Http\File;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -174,8 +175,49 @@ class UserAuthController extends Controller
 
 
     }
-    
 
+    public function resetPassword(Request $req)
+    {
+        //get token
+        try {
+            $auth = app('firebase.auth');
+            $newPassword = $req->new_password;
+            $rules = ([
+                'new_password'=>'min:8|required'
+            ]);
+            $customToken = $req->bearerToken();
+            if($customToken==null)
+            {
+                return response()->json(["message"=>"Auth Token not found","status"=>false],Response::HTTP_BAD_REQUEST);
+            }
+            $validation = Validator::make($req->all(),$rules);
+            if($validation->fails())
+            {
+                return response()->json(["message"=>$validation->messages(),"status"=>false],400);
+            }
+
+
+            $signInResult = $auth->signInWithCustomToken($customToken);
+            if ($signInResult) {
+                // $user = $auth->getUserByEmail($req->email);
+                // $updatedUser = $auth->changeUserPassword($signInResult->uid, $newPassword);
+                $idTokenString = $signInResult->data()['idToken'];
+                // $verifiedIdToken = $auth->verifyIdToken($idTokenString);
+                // $uid = $verifiedIdToken->claims()->get('sub');
+                // $user = $auth->getUser($uid);
+                // return response()->json(["message"=>"Password updated","status"=>true],200);
+            } else {
+                return response()->json(["message"=>"Auth Token not valid Try again or re-login","status"=>false],Response::HTTP_BAD_REQUEST);
+            }
+
+
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            return response()->json(["message"=>"Request error","error_message"=>$th->getMessage(),"status"=>false],Response::HTTP_BAD_REQUEST);
+        }
+
+    }
 
     public function bearerToken()
     {

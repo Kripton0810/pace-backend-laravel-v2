@@ -24,6 +24,7 @@ Route::group(['prefix'=>'user'],function(){
     Route::post('register-manually',[UserAuthController::class,'userRegisterManually']);
     Route::post('login-manually',[UserAuthController::class,'loginManually']);
     Route::post('resend-verification-link',[UserAuthController::class,'resendVerificationMail']);
+    Route::post('reset-password',[UserAuthController::class,'resetPassword']);
 
 
 });
